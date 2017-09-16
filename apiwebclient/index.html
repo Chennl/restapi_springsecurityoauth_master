@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+    <head>        
+    	<meta charset="utf-8">
+    	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <title>Restful API Client</title>
+        <link rel="stylesheet" href="css/bootstrap.min.css" />
+	 	<script type="text/javascript" src="js/jquery-3.2.1.js" ></script>
+		<script type="text/javascript" src="js/popper.min.js" ></script>
+		<script type="text/javascript" src="js/bootstrap.min.js" ></script>
+
+    </head>
+    <body>
+        <div class="container">
+			<h2>获取访问令牌信息</h2>
+			<hr>
+			<form>
+				<div class="form-group row">
+					<label for="inputAppId" class="col-sm-2 col-form-label">AppId</label>
+					<div class="col-sm-10">
+						<input class="form-control" id="inputAppId" value='service-account-1' placeholder="" aria-describedby="appIdHelpInline">
+						<small id="appIdHelpInline"  class="text-muted">输入你的应用申请时获得的AppId</small>
+					</div>
+				</div>
+				<div class="form-group row">
+					<label for="inputSecret" class="col-sm-2 col-form-label">Secret</label>
+					<div class="col-sm-10">
+						<input  class="form-control" value='service-account-1-secret' id="inputSecret" placeholder="" aria-describedby="secretHelpInline">
+						<small id="secretHelpInline" class="text-muted">输入你的应用申请时获得的AppSecret</small>
+					</div>
+				</div>
+			</form>
+			<hr>
+			<div class="row">
+				<div class="offset-sm-2 col-sm-10">
+					<button class="btn btn-primary" id="btnGetTokenInfo">获取令牌</button>
+				</div>
+			</div>
+			<form>
+				<div class="form-group row">
+					<label for="inputAccessToken" class="col-sm-2 col-form-label">访问令牌:</label>
+					<div class="col-sm-10">
+						<textarea    class="form-control" id="inputAccessToken" placeholder="access token" style="height: 268px"></textarea>
+					</div>
+				</div>
+				<div class="form-group row">
+					<label for="inputTokenType" class="col-sm-2 col-form-label">Token Type</label>
+					<div class="col-sm-10">
+						<input class="form-control" id="inputTokenType" placeholder="token type">
+					</div>
+				</div>
+				<div class="form-group row">
+					<label for="inputExpiresIn" class="col-sm-2 col-form-label">Expires In</label>
+					<div class="col-sm-10">
+						<input type="number" id="inputExpiresIn" placeholder="iexpires in">
+					</div>
+				</div>
+				<div class="form-group row">
+					<label for="inputScope" class="col-sm-2 col-form-label">Scope:</label>
+					<div class="col-sm-10">
+						<input class="form-control" id="inputScope" placeholder="scope">
+					</div>
+				</div>
+				<div class="form-group row">
+					<label for="inputJti" class="col-sm-2 col-form-label">Jti:</label>
+					<div class="col-sm-10">
+						<input class="form-control" id="inputJti" placeholder="jti">
+					</div>
+				</div>
+
+			</form>
+			<br>
+			<h2>获取API信息</h2>
+			<hr>
+			<div class="row">
+				<label for="inputApiUri" class="col-sm-2 col-form-label">Api uri</label>
+				<div class="col-sm-10">
+					<input class="form-control" id="inputApiUri" placeholder="" value="http://localhost:9090">
+				</div>
+			</div>
+			<div class="row">
+				<label for="inputMethod" class="col-sm-2 col-form-label">方法</label>
+				<div class="col-sm-10">
+					<select class="form-control" id="inputMethod">
+						<option value="GET" selected>GET</option>
+						<option value="POST">POST</option>
+						<option value="PUT">PUT</option>
+						<option value="DELETE">DELETE</option>
+						<option value="OPTIONS">OPTIONS</option>
+					</select>
+				</div>
+			</div>
+			<div class="row">
+				<div class="offset-sm-2 col-sm-10">
+					<button class="btn btn-primary" id="btnExecuteApi">执行</button>
+				</div>
+			</div>
+			<div class="row">
+				<label for="inputResponse" class="col-sm-2 col-form-label">返回结果:</label>
+				<div class="col-sm-10">
+					<textarea    class="form-control" id="inputResponse" placeholder="" style="height: 268px"></textarea>
+				</div>
+			</div>
+        </div>
+<script type="text/javascript">
+	$(function () {
+
+		$(function(){
+
+		    $('#btnGetTokenInfo').on('click',function(){
+                var username = $('#inputAppId').val();
+                var password = $('#inputSecret').val();
+                $.ajax({
+                    type: "post",
+                    url: 'http://localhost:9080/oauth/token?grant_type=client_credentials',
+                    async: true,
+                    beforeSend: function (xhr) {
+                        xhr.setRequestHeader("Authorization", 'Basic ' + btoa(username + ":" + password));
+                    }
+                })
+                    .done(function (data) {
+                        var access_token_object = data;
+                        $('#inputAccessToken').val(access_token_object.access_token);
+                        $('#inputExpiresIn').val(access_token_object.expires_in);
+                        $('#inputJti').val(access_token_object.jti);
+                        $('#inputScope').val(access_token_object.scope);
+                        $('#inputTokenType').val(access_token_object.token_type);
+                        console.log("data: " + data);
+                        console.dir(data);
+                    })
+                    .fail(function (xhr, status, errorThrown) {
+                        alert("Sorry, there was a problem!");
+                        console.log("Error: " + errorThrown);
+                        console.log("Status: " + status);
+                        console.dir(xhr);
+                    })
+                    .always(function (xhr, status) {
+                        console.log("The request is complete!");
+                    });
+			});
+
+		    $('#btnExecuteApi').on('click',function () {
+               var accessToken =  $('#inputAccessToken').val();
+               var apiUrl = $('#inputApiUri').val();
+               var type = $('#inputMethod').val();
+               $.ajax({
+                   url:apiUrl,
+				   type:type,
+                   crossDomain:true,
+                   async:true,
+				   beforeSend:function (xhr) {
+                       xhr.setRequestHeader("Authorization", 'bearer ' + accessToken);
+                   }
+               })
+				   .done(function (data) {
+				       $('#inputResponse').val(JSON.stringify(data));
+				   	console.log(data);
+              		 })
+                   .fail(function (xhr, status, errorThrown) {
+                       alert("Sorry, there was a problem!");
+                       console.log("Error: " + errorThrown);
+                       console.log("Status: " + status);
+                       console.dir(xhr);
+                       $('#inputResponse').val(JSON.stringify(xhr.responseJSON));
+                   })
+				   .always(function(xhr,status){
+                       console.log("The GetMessage request is complete!");
+				   });
+            });
+		});
+
+
+//        $('button').on('click',function () {
+//            $.ajax(	{
+//                url:'http://localhost:9080/oauth/token?grant_type=client_credentials',
+//                type:'POST',
+//                dataType: 'json',
+//                beforeSend: function( xhr ) {
+//                    xhr.setRequestHeader ("Authorization", 'Basic '+ btoa(username + ":" + password));
+//                }
+//            });
+//        });
+//        $( "button" ).click(function() {
+//
+//            console.log( "You clicked a paragraph!" );
+//
+//        });
+
+
+
+    });
+
+
+//
+//            function refreshTokenInfo() {
+//                var instance = axios.create();
+//                instance.defaults.timeout = 2500;
+//                instance.defaults.headers.common['Authorization'] = 'Basic '+ btoa(username + ":" + password);
+//                instance.interceptors.request.use(function (config) {
+//                    // Do something before request is sent
+//                    return config;
+//                }, function (error) {
+//                    // Do something with request error
+//                    return Promise.reject(error);
+//                });
+//                // Add a response interceptor
+//                instance.interceptors.response.use(function (response) {
+//                    // Do something with response data
+//                    return response;
+//                }, function (error) {
+//                    // Do something with response error
+//                    return Promise.reject(error);
+//                });
+//                instance.post(access_token_url,{
+//                    responseType: 'json'
+//                }).then(function(response){
+//                        this.access_token_object = response.data;
+//                        $('#inputToken').val(access_token_object.access_token);
+//                        $('#inputExpiresIn').val(access_token_object.expires_in);
+//                        $('#inputJti').val(access_token_object.jti);
+//                        $('#inputScope').val(access_token_object.scope);
+//                        $('#inputTokenType').val(access_token_object.token_type);
+//                     })
+//                    .catch(function (error) {
+//                        if(error.response){
+//                            console.log(error.response.data);
+//                            console.log(error.response.status);
+//                            console.log(error.response.headers);
+//                        }else if(error.request){
+//                            console.log(error.request);
+//                        }else{
+//                            console.log("Error",error.message);
+//                        }
+//                        console.log(error.config);
+//                    });
+//
+//
+//            }
+//                function getMessage() {
+//
+//                    $.ajax
+//                    ({
+//                        type: "POST",
+//                        crossDomain:true,
+//                        url: "http://localhost:9090",
+//                        dataType: 'json',
+//                        success: function (data){
+//                            $('#message').html(data.message);
+//                            console.log(data);
+//                        },
+//                        beforeSend: function (xhr) {
+//                            xhr.setRequestHeader ("Authorization", "bearer " + access_token_object.access_token);
+//                        },
+//                    });
+//                //
+		</script>
+
+
+
+    </body>
+</html>

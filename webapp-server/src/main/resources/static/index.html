@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>My application</title>
+        <script src = "jquery-1.11.3.min.js"></script>
+        <script src="vue.min.js"></script>
+        <script src="axios.min.js"></script>
+    </head>
+    <body>
+        <h1>Unsecured page</h1>
+
+        <div id="app">
+
+
+            <div><h2>Token Info:</h2>
+                <button onclick="refreshTokenInfo()">Get Access Token from Server!</button><br>
+                <div id="token-info"></div>
+            </div>
+            <div>
+                <button onclick="getMessage()"> Get Message</button><br>
+                <div id="message"></div>
+            </div>
+
+        </div>
+
+
+        <script type="text/javascript">
+                var access_token_object={};
+            function refreshTokenInfo() {
+                var access_token_url='http://localhost:9080/oauth/token?grant_type=client_credentials';
+                var username="service-account-1";
+                var password="service-account-1-secret";
+                var instance = axios.create();
+                instance.defaults.timeout = 2500;
+                instance.defaults.headers.common['Authorization'] = 'Basic '+ btoa(username + ":" + password);
+                instance.interceptors.request.use(function (config) {
+                    // Do something before request is sent
+                    return config;
+                }, function (error) {
+                    // Do something with request error
+                    return Promise.reject(error);
+                });
+                // Add a response interceptor
+                instance.interceptors.response.use(function (response) {
+                    // Do something with response data
+                    return response;
+                }, function (error) {
+                    // Do something with response error
+                    return Promise.reject(error);
+                });
+                instance.post(access_token_url,{
+                    responseType: 'json'
+                })
+                    .then(function(response){
+                        this.access_token_object = response.data;
+                        var html = '<span>access_token:</span><br><p>'+ access_token_object.access_token+' </p>'+
+                            '<span>expires_in:</span><p>'+access_token_object.expires_in+'</p>'+
+                            '<span>jti:</span><p>'+access_token_object.jti+'</p>'+
+                            '<span>scope:</span><p>'+access_token_object.scope+'</p>'+
+                            '<span>token_type:</span><p>'+access_token_object.token_type+'</p>';
+                        $('#token-info').html(html);
+                  //      console.log("token is:" + this.access_token_object.access_token);
+                    })
+                    .catch(function (error) {
+                        if(error.response){
+                            console.log(error.response.data);
+                            console.log(error.response.status);
+                            console.log(error.response.headers);
+                        }else if(error.request){
+                            console.log(error.request);
+                        }else{
+                            console.log("Error",error.message);
+                        }
+                        console.log(error.config);
+                    });
+
+
+            }
+                function getMessage() {
+
+                    $.ajax
+                    ({
+                        type: "POST",
+                        crossDomain:true
+                        url: "http://localhost:9090",
+                        dataType: 'json',
+                        success: function (data){
+                            $('#message').html(data.message);
+                            console.log(data);
+                        },
+                        beforeSend: function (xhr) {
+                            xhr.setRequestHeader ("Authorization", "bearer " + access_token_object.access_token);
+                        },
+                    });
+                }
+        </script>
+
+
+    </body>
+</html>

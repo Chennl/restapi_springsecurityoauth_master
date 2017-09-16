@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		 <script type="text/javascript" src="js/jquery-3.2.1.min.js" ></script>
+	
+		<title></title>
+	</head>
+	<body>
+		<script type="text/javascript">
+			function getInfo(){
+                var username="service-account-1";
+                var password="service-account-1-secret";
+				$.ajax({
+					type:"post",
+					url:'http://localhost:9080/oauth/token?grant_type=client_credentials',
+					async:true,
+                    beforeSend: function( xhr ) {
+                        xhr.setRequestHeader ("Authorization", 'Basic '+ btoa(username + ":" + password));
+                    }
+				}).done(function(data){
+				   // alert(data.access_token);
+                    console.log( "Status: " + status );
+                    console.dir( data );
+				})
+                // Code to run if the request fails; the raw request and
+                // status codes are passed to the function
+                    .fail(function( xhr, status, errorThrown ) {
+                        alert( "Sorry, there was a problem!" );
+                        console.log( "Error: " + errorThrown );
+                        console.log( "Status: " + status );
+                        console.dir( xhr );
+                    })
+                    // Code to run regardless of success or failure;
+                    .always(function( xhr, status ) {
+
+                        alert( "The request is complete!" );
+
+                    });
+
+            }
+		</script>
+		<button onclick="getInfo()">test</button>
+	</body>
+</html>

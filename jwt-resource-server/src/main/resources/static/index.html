@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>My application</title>
+        <script src = "jquery-1.11.3.min.js"></script>
+    </head>
+    <body>
+        <h1>Unsecured page</h1>
+        <div>
+            <button onclick="getAccessToken()"> Access Token</button>
+            <input type="text" id="access-token-editor">
+        </div>
+        <div>Message is: <span id="message"></span></div>
+
+
+        <div><button onclick="submitNewMessage()">Submit message</button></div>
+        <input type="text" id="messageToSubmit">
+
+        <script>
+
+            function getAccessToken() {
+                var username="service-account-1";
+                var password="service-account-1-secret";
+                $.ajax
+                ({
+                    type: "GET",
+                    url: "http://localhost:9080/oauth/token?grant_type=client_credentials",
+                    dataType: 'json',
+                    async: false,
+                    success: function (data){
+                        var json = JSON.parse(data);
+                        $("access-token-editor").val(json.access_token);
+                    },
+                    beforeSend: function (xhr) {
+                        xhr.setRequestHeader ("Authorization", "Basic " + btoa(username + ":" + password));
+                    },
+                });
+            }
+        </script>
+
+    </body>
+</html>
